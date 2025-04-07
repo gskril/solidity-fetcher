@@ -15,7 +15,6 @@ contract Counter is Fetcher {
     function awaitSetNumber() public view returns (uint256) {
         Request memory request = Request({
             url: "https://www.randomnumberapi.com/api/v1.0/random",
-            method: "GET",
             path: "[0]",
             callbackFunction: this.setNumber.selector
         });
@@ -26,13 +25,16 @@ contract Counter is Fetcher {
     /// @dev The callback function is what will get executed onchain. It must accept `(bytes, bytes)` to comply
     ///      with ERC-3668, and should return the type of whatever's expected from the API.
     function setNumber(
-        bytes calldata response,
-        bytes calldata request
+        bytes calldata fetchResponse,
+        bytes calldata fetchRequest
     ) public returns (uint256) {
-        bytes memory verifiedResponse = _verifyFetch(response, request);
+        bytes memory encodedResponse = _verifyFetch(
+            fetchResponse,
+            fetchRequest
+        );
 
         // This is where you can decode the response and do whatever you need with it.
-        number = abi.decode(verifiedResponse, (uint256));
+        number = abi.decode(encodedResponse, (uint256));
         return number;
     }
 }

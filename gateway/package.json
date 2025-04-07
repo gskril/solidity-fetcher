@@ -8,12 +8,15 @@
     "start": "bun src/index.ts"
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "@ensdomains/ccip-read-router": "^0.0.6"
+    "@ensdomains/ccip-read-router": "^0.0.6",
+    "itty-router": "^5.0.18",
+    "viem": "^2.26.0"
   }
 }

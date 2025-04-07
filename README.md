@@ -1,3 +1,6 @@
+> [!NOTE]
+> This is a work in progress and not functional yet.
+
 # Solidity Fetcher
 
 A common question for new Solidity developers is "How do I make an API request from a smart contract?" and the short answer is "You can't." But it turns out, you kinda can!
