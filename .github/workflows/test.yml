@@ -20,6 +20,10 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: oven-sh/setup-bun@v2
+        with:
+            bun-version: 1.2.8
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
@@ -35,4 +39,9 @@ jobs:
       - name: Run Forge tests
         run: |
           forge test -vvv
-        id: test
+        id: foundry-test
+
+      - name: Run Bun tests
+        run: |
+          bun test
+        id: bun-test
