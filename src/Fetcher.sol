@@ -27,10 +27,10 @@ contract Fetcher {
 
     /// @notice Create an HTTP request to fetch offchain data using ERC-3668 (CCIP Read).
     function fetch(
-        Request calldata request
+        Request memory request
     ) internal view returns (bytes memory) {
         bytes memory callData = abi.encodeWithSelector(
-            Fetcher.fetch.selector,
+            bytes4(keccak256("fetch((address,string[],bytes,bytes4,bytes))")),
             request
         );
 

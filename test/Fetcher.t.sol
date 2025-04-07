@@ -2,24 +2,19 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {Fetcher} from "../src/Fetcher.sol";
 
+import {Counter} from "../src/examples/Counter.sol";
+
+// Idk how to test Fetcher directly due to logic being internal, so these tests are for an example implementation.
 contract FetcherTest is Test {
-    Fetcher public fetcher;
+    Counter public counter;
 
     function setUp() public {
-        fetcher = new Fetcher();
+        counter = new Counter();
     }
 
     function test_FetchRevertsWithOffchainLookup() public {
         vm.expectRevert();
-        fetcher.fetch(
-            Fetcher.Request({
-                url: "",
-                method: "",
-                path: "",
-                callbackFunction: bytes4(0)
-            })
-        );
+        counter.awaitSetNumber();
     }
 }

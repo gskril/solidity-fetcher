@@ -12,7 +12,7 @@ contract Counter is Fetcher {
 
     /// @dev This function initiates an API request, which will then call `setNumber()` with all the data needed for it
     ///      to return a number.
-    function awaitSetNumber() public returns (uint256) {
+    function awaitSetNumber() public view returns (uint256) {
         Request memory request = Request({
             url: "https://www.randomnumberapi.com/api/v1.0/random",
             method: "GET",
@@ -20,7 +20,7 @@ contract Counter is Fetcher {
             callbackFunction: this.setNumber.selector
         });
 
-        return fetch(request);
+        fetch(request);
     }
 
     /// @dev The callback function is what will get executed onchain. It must accept `(bytes, bytes)` to comply
