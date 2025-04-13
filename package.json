@@ -5,8 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "bun --watch gateway/index.ts",
-    "start": "bun gateway/index.ts",
-    "test": "bun test && forge test"
+    "start": "bun gateway/index.ts"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
@@ -16,6 +15,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@adraffy/blocksmith": "^0.1.52",
     "@ensdomains/ccip-read-router": "^0.0.6",
     "itty-router": "^5.0.18",
     "viem": "^2.26.0"
