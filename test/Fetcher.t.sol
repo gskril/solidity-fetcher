@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 
-import {Counter} from "../src/examples/Counter.sol";
+import {Counter} from "../contracts/examples/Counter.sol";
 
 // Idk how to test Fetcher directly due to logic being internal, so these tests are for an example implementation.
 contract FetcherTest is Test {

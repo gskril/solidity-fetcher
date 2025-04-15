@@ -8,5 +8,14 @@
   "plugins": ["@trivago/prettier-plugin-sort-imports"],
   "importOrder": ["<THIRD_PARTY_MODULES>", "^@/", "^[./]"],
   "importOrderSeparation": true,
-  "importOrderSortSpecifiers": true
+  "importOrderSortSpecifiers": true,
+  "overrides": [
+    {
+      "files": "**/*.sol",
+      "options": {
+        "tabWidth": 4,
+        "singleQuote": false
+      }
+    }
+  ]
 }

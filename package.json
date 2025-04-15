@@ -3,9 +3,10 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "packageManager": "bun@1.2.8",
   "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "start": "bun src/index.ts"
+    "dev": "bun --watch gateway/index.ts",
+    "start": "bun gateway/index.ts"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
@@ -15,6 +16,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@adraffy/blocksmith": "^0.1.52",
     "@ensdomains/ccip-read-router": "^0.0.6",
     "itty-router": "^5.0.18",
     "viem": "^2.26.0"

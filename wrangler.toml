@@ -1,0 +1,4 @@
+name = "solidity-fetcher"
+main = "./gateway/index.ts"
+compatibility_date = "2024-03-19"
+
