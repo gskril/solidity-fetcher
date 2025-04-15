@@ -9,7 +9,8 @@
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "wrangler": "^4.10.0"
   },
   "peerDependencies": {
     "typescript": "^5"
