@@ -15,7 +15,6 @@ router.add({
   type: 'function fetch((string url, string path, bytes4 callbackFunction)) view returns (bytes)',
   handle: async ([req]) => {
     const { url, path } = req
-    console.log('getting hit')
 
     const proxyRes = await fetch(url)
     const proxyResBody = (await proxyRes.json()) as any
