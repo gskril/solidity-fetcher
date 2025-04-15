@@ -25,7 +25,7 @@ beforeAll(async () => {
     account: privateKeyToAccount(foundry.wallets.admin!.privateKey as Hex),
     transport: http(`http://127.0.0.1:${foundry.port}`),
     chain: anvil,
-  } as const
+  }
 
   walletClient = createWalletClient(clientArgs)
   publicClient = createPublicClient(clientArgs)
