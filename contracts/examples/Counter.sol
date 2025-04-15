@@ -12,7 +12,8 @@ contract Counter is Fetcher {
 
     /// @dev This function initiates an API request, which will then call `setNumber()` with all the data needed for it
     ///      to return a number.
-    function awaitSetNumber() public view returns (uint256) {
+    /// @dev Marked as payable to explicity make it a transaction, otherwise it will be interpreted as a read method.
+    function awaitSetNumber() public payable returns (uint256) {
         Request memory request = Request({
             url: "https://www.randomnumberapi.com/api/v1.0/random",
             path: "[0]",
