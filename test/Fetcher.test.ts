@@ -1,8 +1,12 @@
 import { Foundry } from '@adraffy/blocksmith'
 import { afterAll, beforeAll, expect, test } from 'bun:test'
 import {
+  type Account,
+  type Chain,
+  type ClientConfig,
   type Hex,
   type PublicClient,
+  type Transport,
   type WalletClient,
   createPublicClient,
   createWalletClient,
@@ -15,8 +19,8 @@ import { anvil } from 'viem/chains'
 import router from '../gateway/index'
 
 let foundry: Foundry
-let walletClient: WalletClient
-let publicClient: PublicClient
+let walletClient: WalletClient<Transport, Chain, Account>
+let publicClient: PublicClient<Transport, Chain, Account>
 
 beforeAll(async () => {
   foundry = await Foundry.launch()
@@ -25,7 +29,15 @@ beforeAll(async () => {
     account: privateKeyToAccount(foundry.wallets.admin!.privateKey as Hex),
     transport: http(`http://127.0.0.1:${foundry.port}`),
     chain: anvil,
-  }
+    ccipRead: {
+      // Make Viem handle CCIP Read requests locally
+      request: async ({ sender, data }) => {
+        const res = await router.call({ to: sender, data })
+        const body = res.body as { data: Hex }
+        return body.data
+      },
+    },
+  } satisfies ClientConfig
 
   walletClient = createWalletClient(clientArgs)
   publicClient = createPublicClient(clientArgs)
@@ -57,9 +69,39 @@ test('test', async () => {
 
   expect(numberBefore).toBe(0n)
 
-  // This should revert with `OffchainLookup` and call `setNumber()`
-  await walletClient.writeContract({
+  // CCIP Read works here and returns the below object
+  const txRequest = await publicClient.simulateContract({
     ...contract,
     functionName: 'awaitSetNumber',
   })
+
+  console.log({ txRequest })
+  /*
+    {
+      txRequest: {
+        result: 8000000000000000000n,
+        request: {
+          abi: [
+            [Object ...]
+          ],
+          address: "0x3Ede3eCa2a72B3aeCC820E955B36f38437D01395",
+          args: undefined,
+          dataSuffix: undefined,
+          functionName: "awaitSetNumber",
+          account: [Object ...],
+        },
+      },
+    }
+  */
+
+  // This fails because it's calling `awaitSetNumber()` which implements CCIP Read, which Viem doesn't support in transactions
+  const hash = await walletClient.writeContract(txRequest.request)
+  await publicClient.waitForTransactionReceipt({ hash })
+
+  const numberAfter = await publicClient.readContract({
+    ...contract,
+    functionName: 'number',
+  })
+
+  expect(numberAfter).toBeGreaterThan(0n)
 })
