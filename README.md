@@ -7,6 +7,10 @@ A common question for new Solidity developers is "How do I make an API request f
 
 [Fetcher.sol](./src/Fetcher.sol) is a helper contract built on top of [ERC-3668](https://eips.ethereum.org/EIPS/eip-3668) that acts as a proxy to fetch data from any HTTP API and trigger a callback onchain.
 
+## Notes
+
+- Viem doesn't support using CCIP Read for transactions, so we need to build custom tooling.
+
 ## Usage
 
 ### Build

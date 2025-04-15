@@ -57,7 +57,7 @@ test('test', async () => {
     abi: parseAbi([
       'error OffchainLookup(address sender,string[] urls,bytes callData,bytes4 callbackFunction,bytes extraData)',
       'function number() view returns (uint256)',
-      'function awaitSetNumber() returns (uint256)',
+      'function awaitSetNumber() view returns (uint256)',
       'function setNumber(bytes calldata fetchResponse, bytes calldata fetchRequest) public returns (uint256)',
     ]),
   }
@@ -69,39 +69,23 @@ test('test', async () => {
 
   expect(numberBefore).toBe(0n)
 
-  // CCIP Read works here and returns the below object
-  const txRequest = await publicClient.simulateContract({
+  const res = await publicClient.readContract({
     ...contract,
     functionName: 'awaitSetNumber',
   })
 
-  console.log({ txRequest })
-  /*
-    {
-      txRequest: {
-        result: 8000000000000000000n,
-        request: {
-          abi: [
-            [Object ...]
-          ],
-          address: "0x3Ede3eCa2a72B3aeCC820E955B36f38437D01395",
-          args: undefined,
-          dataSuffix: undefined,
-          functionName: "awaitSetNumber",
-          account: [Object ...],
-        },
-      },
-    }
-  */
+  console.log({ res })
+
+  // TODO: Modify Viem to extract the `sender` and `data` so we can send it along with the contract
 
   // This fails because it's calling `awaitSetNumber()` which implements CCIP Read, which Viem doesn't support in transactions
-  const hash = await walletClient.writeContract(txRequest.request)
-  await publicClient.waitForTransactionReceipt({ hash })
+  // const hash = await walletClient.writeContract(txRequest.request)
+  // await publicClient.waitForTransactionReceipt({ hash })
 
-  const numberAfter = await publicClient.readContract({
-    ...contract,
-    functionName: 'number',
-  })
+  // const numberAfter = await publicClient.readContract({
+  //   ...contract,
+  //   functionName: 'number',
+  // })
 
-  expect(numberAfter).toBeGreaterThan(0n)
+  // expect(numberAfter).toBeGreaterThan(0n)
 })
