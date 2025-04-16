@@ -1,13 +1,8 @@
 import { Foundry } from '@adraffy/blocksmith'
 import { afterAll, beforeAll, expect, test } from 'bun:test'
 import {
-  type Account,
-  type Chain,
   type ClientConfig,
   type Hex,
-  type PublicClient,
-  type Transport,
-  type WalletClient,
   createPublicClient,
   createWalletClient,
   http,
@@ -17,14 +12,19 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { anvil } from 'viem/chains'
 
 import router from '../gateway/index'
+import { fetcherActions } from '../package/index'
 
 let foundry: Foundry
-let walletClient: WalletClient<Transport, Chain, Account>
-let publicClient: PublicClient<Transport, Chain, Account>
 
 beforeAll(async () => {
   foundry = await Foundry.launch()
+})
 
+afterAll(async () => {
+  foundry.shutdown()
+})
+
+test('test', async () => {
   const clientArgs = {
     account: privateKeyToAccount(foundry.wallets.admin!.privateKey as Hex),
     transport: http(`http://127.0.0.1:${foundry.port}`),
@@ -39,15 +39,9 @@ beforeAll(async () => {
     },
   } satisfies ClientConfig
 
-  walletClient = createWalletClient(clientArgs)
-  publicClient = createPublicClient(clientArgs)
-})
+  const walletClient = createWalletClient(clientArgs)
+  const publicClient = createPublicClient(clientArgs).extend(fetcherActions)
 
-afterAll(async () => {
-  foundry.shutdown()
-})
-
-test('test', async () => {
   const _contract = await foundry.deploy({
     file: 'contracts/examples/Counter.sol',
   })
@@ -69,14 +63,21 @@ test('test', async () => {
 
   expect(numberBefore).toBe(0n)
 
-  // This fails because Viem doesn't support CCIP Read in transactions
-  // TODO: Write a Viem extension to solve this until it's supported upstream
-  const hash = await walletClient.writeContract({
+  const simulation = await publicClient.simulateContractFetch({
     ...contract,
     functionName: 'awaitSetNumber',
   })
 
-  await publicClient.waitForTransactionReceipt({ hash })
+  if (!simulation.context) {
+    throw new Error('Context is undefined')
+  }
+
+  // If Viem supported CCIP Read in transactions, this would be called automatically
+  await walletClient.writeContract({
+    ...contract,
+    functionName: 'setNumber',
+    args: [simulation.context.response, simulation.context.request],
+  })
 
   const numberAfter = await publicClient.readContract({
     ...contract,
