@@ -17,14 +17,19 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { anvil } from 'viem/chains'
 
 import router from '../gateway/index'
+import { fetcherActions } from '../package/index'
 
 let foundry: Foundry
-let walletClient: WalletClient<Transport, Chain, Account>
-let publicClient: PublicClient<Transport, Chain, Account>
 
 beforeAll(async () => {
   foundry = await Foundry.launch()
+})
 
+afterAll(async () => {
+  foundry.shutdown()
+})
+
+test('test', async () => {
   const clientArgs = {
     account: privateKeyToAccount(foundry.wallets.admin!.privateKey as Hex),
     transport: http(`http://127.0.0.1:${foundry.port}`),
@@ -39,15 +44,9 @@ beforeAll(async () => {
     },
   } satisfies ClientConfig
 
-  walletClient = createWalletClient(clientArgs)
-  publicClient = createPublicClient(clientArgs)
-})
+  const walletClient = createWalletClient(clientArgs)
+  const publicClient = createPublicClient(clientArgs).extend(fetcherActions)
 
-afterAll(async () => {
-  foundry.shutdown()
-})
-
-test('test', async () => {
   const _contract = await foundry.deploy({
     file: 'contracts/examples/Counter.sol',
   })
@@ -68,6 +67,14 @@ test('test', async () => {
   })
 
   expect(numberBefore).toBe(0n)
+
+  const simulation = await publicClient.simulateContractFetch({
+    ...contract,
+    functionName: 'awaitSetNumber',
+  })
+
+  // Context is undefined :/
+  console.log({ simulation })
 
   // This fails because Viem doesn't support CCIP Read in transactions
   // TODO: Write a Viem extension to solve this until it's supported upstream
