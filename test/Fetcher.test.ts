@@ -1,13 +1,8 @@
 import { Foundry } from '@adraffy/blocksmith'
 import { afterAll, beforeAll, expect, test } from 'bun:test'
 import {
-  type Account,
-  type Chain,
   type ClientConfig,
   type Hex,
-  type PublicClient,
-  type Transport,
-  type WalletClient,
   createPublicClient,
   createWalletClient,
   http,
@@ -73,17 +68,16 @@ test('test', async () => {
     functionName: 'awaitSetNumber',
   })
 
-  // Context is undefined :/
-  console.log({ simulation })
+  if (!simulation.context) {
+    throw new Error('Context is undefined')
+  }
 
-  // This fails because Viem doesn't support CCIP Read in transactions
-  // TODO: Write a Viem extension to solve this until it's supported upstream
-  const hash = await walletClient.writeContract({
+  // If Viem supported CCIP Read in transactions, this would be called automatically
+  await walletClient.writeContract({
     ...contract,
-    functionName: 'awaitSetNumber',
+    functionName: 'setNumber',
+    args: [simulation.context.response, simulation.context.request],
   })
-
-  await publicClient.waitForTransactionReceipt({ hash })
 
   const numberAfter = await publicClient.readContract({
     ...contract,

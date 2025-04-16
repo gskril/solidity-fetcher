@@ -2,6 +2,8 @@ import {
   type Abi,
   type Account,
   type Address,
+  type CallParameters,
+  type CallReturnType,
   type Chain,
   type Client,
   type ContractFunctionArgs,
@@ -10,9 +12,10 @@ import {
   type SimulateContractParameters,
   type SimulateContractReturnType,
   type Transport,
-  offchainLookup,
+  ccipRequest,
 } from 'viem'
 import { simulateContract } from 'viem/actions'
+import { call } from 'viem/actions'
 
 type CcipReadContext =
   | {
@@ -108,20 +111,18 @@ async function simulateContractFetch<
 
   const modifiedClient = {
     ...client,
+    call: (params): Promise<CallReturnType> => call(modifiedClient, params),
     ccipRead: {
       request: async (req) => {
-        const response = await offchainLookup(client, {
-          data: req.data,
-          to: req.sender,
-        })
-
+        const response = await ccipRequest(req)
         context = { response, request: req.data }
         return response
       },
     },
-  } satisfies Client
+  } satisfies Client<Transport, chain, account> & {
+    call: (parameters: CallParameters<chain>) => Promise<CallReturnType>
+  }
 
   const simulation = await simulateContract(modifiedClient, parameters)
-
   return { ...simulation, context }
 }
