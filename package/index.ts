@@ -108,19 +108,18 @@ async function simulateContractFetch<
 
   const modifiedClient = {
     ...client,
-  }
+    ccipRead: {
+      request: async (req) => {
+        const response = await offchainLookup(client, {
+          data: req.data,
+          to: req.sender,
+        })
 
-  modifiedClient.ccipRead = {
-    request: async (req) => {
-      const response = await offchainLookup(client, {
-        data: req.data,
-        to: req.sender,
-      })
-
-      context = { response, request: req.data }
-      return response
+        context = { response, request: req.data }
+        return response
+      },
     },
-  }
+  } satisfies Client
 
   const simulation = await simulateContract(modifiedClient, parameters)
 
