@@ -1,6 +1,12 @@
 import { CcipReadRouter } from '@ensdomains/ccip-read-router'
 import { cors } from 'itty-router'
-import { encodeAbiParameters } from 'viem'
+import {
+  type Hex,
+  encodeAbiParameters,
+  encodeFunctionData,
+  keccak256,
+  parseAbi,
+} from 'viem'
 
 const { preflight, corsify } = cors()
 
@@ -11,8 +17,12 @@ const router = CcipReadRouter({
   finally: [corsify],
 })
 
+const abi = parseAbi([
+  'function fetch((string url, string path, bytes4 callbackFunction)) view returns (bytes)',
+])
+
 router.add({
-  type: 'function fetch((string url, string path, bytes4 callbackFunction)) view returns (bytes)',
+  type: abi[0],
   handle: async ([req]) => {
     const { url, path } = req
 
@@ -21,22 +31,35 @@ router.add({
     const item = proxyResBody?.[JSON.parse(path)]
     const returnType = typeof item
     console.log({ url, path, item, returnType })
+    let res: Hex
 
     // Always going to be a string, number or boolean which we need to ABI encode into bytes
     switch (returnType) {
       case 'string':
-        return encodeAbiParameters([{ type: 'string' }], [item])
+        res = encodeAbiParameters([{ type: 'string' }], [item])
+        break
 
       case 'number':
         // We multiply all numbers by 1e18 to avoid precision loss since Solidity doesn't support decimals
-        return encodeAbiParameters([{ type: 'uint256' }], [BigInt(item * 1e18)])
+        res = encodeAbiParameters([{ type: 'uint256' }], [BigInt(item * 1e18)])
+        break
 
       case 'boolean':
-        return encodeAbiParameters([{ type: 'bool' }], [item])
+        res = encodeAbiParameters([{ type: 'bool' }], [item])
+        break
 
       default:
         throw new Error('Unsupported return type')
     }
+
+    const expiresAt = Math.floor(Date.now() / 1000) + 60
+    const calldata = encodeFunctionData({ abi, args: [req] })
+    console.log({ calldata })
+
+    return encodeAbiParameters(
+      [{ type: 'bytes' }, { type: 'bytes32' }, { type: 'uint256' }],
+      [res, keccak256(calldata), BigInt(expiresAt)]
+    )
   },
 })
 

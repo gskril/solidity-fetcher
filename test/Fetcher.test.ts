@@ -25,18 +25,11 @@ afterAll(async () => {
 })
 
 test('test', async () => {
+  // This will use the `_gateway()` from Fetcher.sol for CCIP Read requests
   const clientArgs = {
     account: privateKeyToAccount(foundry.wallets.admin!.privateKey as Hex),
     transport: http(`http://127.0.0.1:${foundry.port}`),
     chain: anvil,
-    ccipRead: {
-      // Make Viem handle CCIP Read requests locally
-      request: async ({ sender, data }) => {
-        const res = await router.call({ to: sender, data })
-        const body = res.body as { data: Hex }
-        return body.data
-      },
-    },
   } satisfies ClientConfig
 
   const walletClient = createWalletClient(clientArgs)

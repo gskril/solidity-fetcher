@@ -23,6 +23,9 @@ contract Fetcher {
         bytes extraData
     );
 
+    error Fetcher_ExpiredResponse();
+    error Fetcher_InvalidRequest();
+
     /// @notice Create an HTTP request to fetch offchain data using ERC-3668 (CCIP Read).
     function fetch(
         Request memory request
@@ -45,13 +48,30 @@ contract Fetcher {
     }
 
     /// @dev This MUST be called in the callback function of the implementing contract to verify the gateway's response.
+    // TODO: let `Request` accept `extraData` that can be used to add context to the implementer's callback function
+    // Once that's added, this function should probably return (bytes encodedResponse, bytes extraData)
     function _verifyFetch(
         bytes calldata response,
         bytes calldata request
     ) internal view returns (bytes memory) {
-        // TODO: let `Request` accept `extraData` that can be used to add context to the implementer's callback function
-        // Once that's added, this function should probably return (bytes encodedResponse, bytes extraData)
-        return response;
+        (
+            bytes memory encodedResponse,
+            bytes32 requestHash,
+            uint256 expiresAt
+        ) = abi.decode(response, (bytes, bytes32, uint256));
+
+        // Check that the response is for the intended request
+        if (keccak256(request) != requestHash) {
+            // TODO: Implement this
+            // revert Fetcher_InvalidRequest();
+        }
+
+        // Check that the response has not expired
+        if (block.timestamp > expiresAt) {
+            revert Fetcher_ExpiredResponse();
+        }
+
+        return encodedResponse;
     }
 
     /// @dev Proxy server that handles ABI encoding and decoding around JSON API requests.
